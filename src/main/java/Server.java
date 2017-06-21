@@ -5,25 +5,46 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Server extends Thread{
+public class Server extends Thread {
     private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
-    Server(Socket socket){
-        this.socket = socket;
+    Server(Socket s) throws IOException {
+        this.socket = s;
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());
     }
 
     public void run() {
+        try {
+            String request = in.readUTF();
+            JSONObject obj = new JSONObject(request);
+            Deposit dep = listOfDeposits.get(obj.getInt("deposit"));
+            String type = obj.getString("type");
+            if (type.equals("deposit")) {
+                System.out.println(type);
+                dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
+            } else if (type.equals("withdraw")) {
+                System.out.println(type);
+                dep.setInitialBalane(dep.getInitialBalane().subtract(new BigDecimal(obj.getInt("amount"))));
+            }
+            listOfDeposits.remove(obj.getInt("deposit"));
+            listOfDeposits.put(obj.getInt("deposit"), dep);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    static List<Deposit> listOfDeposits;
+    static Map<Integer, Deposit> listOfDeposits;
     static int port;
     static String outLog;
 
-    public static void readFile(String fileName){
+    public static void readFile(String fileName) {
         String jsonData = "";
         BufferedReader br = null;
         try {
@@ -43,14 +64,14 @@ public class Server extends Thread{
         outLog = obj.getString("outLog");
 
         JSONArray arr = obj.getJSONArray("deposit");
-        for(int i = 0; i < arr.length(); i++) {
+        for (int i = 0; i < arr.length(); i++) {
             JSONObject depObj = arr.getJSONObject(i);
-            listOfDeposits.add(new Deposit(depObj.getString("customer"), depObj.getInt("id"), new BigDecimal(depObj.getString("initialBalance")), new BigDecimal(depObj.getString("upperBound"))));
+            listOfDeposits.put(depObj.getInt("id"), new Deposit(depObj.getString("customer"), depObj.getInt("id"), new BigDecimal(depObj.getString("initialBalance")), new BigDecimal(depObj.getString("upperBound"))));
         }
     }
 
     public static void main(String[] args) throws IOException {
-        listOfDeposits = new ArrayList<Deposit>();
+        listOfDeposits = new HashMap<Integer, Deposit>();
         readFile("core.json");
         ServerSocket listener = new ServerSocket(port);
 
