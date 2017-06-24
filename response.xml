@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<terminal id="21374" type="ATM">
+    <responses>
+        <response id="1" status="done"/>
+        <response id="2" status="insufficient"/>
+    </responses>
+</terminal>
