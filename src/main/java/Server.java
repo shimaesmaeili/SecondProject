@@ -24,6 +24,10 @@ public class Server extends Thread {
             String request = in.readUTF();
             JSONObject obj = new JSONObject(request);
 
+            synchronized (logFile) {
+                logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": A request is received!\n");
+            }
+
             boolean valid = false;
 
             if (listOfDeposits.containsKey(obj.getInt("deposit"))) {
@@ -32,19 +36,23 @@ public class Server extends Thread {
                 BigDecimal amount = new BigDecimal(obj.getInt("amount"));
 
                 if (type.equals("deposit")) {
-                    if (dep.getInitialBalane().add(amount).compareTo(dep.getUpperBound()) < 0) {
+                    if (dep.getInitialBalane().add(amount).compareTo(dep.getUpperBound()) <= 0) {
                         valid = true;
                     }
                     else{
                         out.writeUTF("exceeded");
                     }
                 } else if (type.equals("withdraw")) {
-                    if (dep.getInitialBalane().compareTo(amount) > 0) {
+                    if (dep.getInitialBalane().compareTo(amount) >= 0) {
                         valid = true;
                     }
                     else{
                         out.writeUTF("insufficient");
                     }
+                }
+
+                synchronized (logFile) {
+                    logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": validation checked.\n");
                 }
 
                 System.out.println(valid);
@@ -54,17 +62,17 @@ public class Server extends Thread {
                         if (type.equals("deposit")) {
                             dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
                         } else if (type.equals("withdraw")) {
-                            listOfDeposits.get(obj.getInt("deposit")).setInitialBalane(listOfDeposits.get(obj.getInt("deposit")).getInitialBalane().subtract(new BigDecimal(obj.getString("amount"))));
+                            dep.setInitialBalane(dep.getInitialBalane().subtract(new BigDecimal(obj.getInt("amount"))));
                         }
-                        out.writeUTF("done");
                     }
+                    out.writeUTF("done");
                     synchronized (logFile){
-                        logFile.writeBytes("The request for deposit number: " + obj.getInt("deposit") + " with transaction id: " + obj.getInt("id") + " has done successfully!\n");
+                        logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was done successfully!\n");
                     }
                 }
                 else{
                     synchronized (logFile){
-                        logFile.writeBytes("The request for deposit number: " + obj.getInt("deposit") + " with transaction id: " + obj.getInt("id") + " was not valid!\n");
+                        logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was not valid!\n");
                     }
                 }
             }
@@ -116,6 +124,8 @@ public class Server extends Thread {
         readFile("core.json");
         ServerSocket listener = new ServerSocket(port);
         logFile = new DataOutputStream(new FileOutputStream(outLog));
+
+        logFile.writeBytes("Server is initialized successfully!\n");
 
         try {
             while (true) {

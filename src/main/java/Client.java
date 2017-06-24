@@ -34,19 +34,20 @@ public class Client {
         System.out.println(trans.getType());
         try {
             out.writeUTF(String.valueOf(JSONObject.wrap(trans)));
+            logFile.writeBytes("TransactionID=" + trans.getId() + ": sent to server.\n");
             String respond = in.readUTF();
 
             responses.put(trans.getId(), respond);
 
             String logMessage = "";
             if (respond.equals("done")) {
-                logMessage = "Transaction " + trans.getId() + " has done successfully!\n";
+                logMessage = "TransactionID=" + trans.getId() + ": done successfully!\n";
             } else if (respond.equals("insufficient")) {
-                logMessage = "Transaction " + trans.getId() + " can not be done due to lack of account balance!\n";
+                logMessage = "TransactionID=" + trans.getId() + ": can not be done due to lack of account balance!\n";
             } else if (respond.equals("exceeded")) {
-                logMessage = "Transaction " + trans.getId() + " can not be done due to exceeding the upper bound!\n";
+                logMessage = "TransactionID=" + trans.getId() + ": can not be done due to exceeding the upper bound!\n";
             } else if (respond.equals("wrong")) {
-                logMessage = "Transaction " + trans.getId() + " has encountered error! No such deposit number!\n";
+                logMessage = "TransactionID=" + trans.getId() + ": encountered error!\n";
             }
             synchronized (logFile) {
                 logFile.writeBytes(logMessage);
@@ -56,14 +57,14 @@ public class Client {
         }
     }
 
-    static int port;
-    static String outPath, ip, terminalType, terminalID;
+    static int port, terminalID;
+    static String outPath, ip, terminalType;
     static DataOutputStream logFile, responseFile;
     static List<Transaction> listOfTransactions;
     static HashMap<Integer, String> responses;
 
     public static void parseFile(Document document) {
-        terminalID = document.getDocumentElement().getAttribute("id");
+        terminalID = Integer.parseInt(document.getDocumentElement().getAttribute("id"));
         terminalType = document.getDocumentElement().getAttribute("type");
 
         Node serverNode = document.getElementsByTagName("server").item(0);
@@ -80,7 +81,7 @@ public class Client {
             BigDecimal amount = new BigDecimal(((Element) nodeList.item(i)).getAttribute("amount"));
             BigDecimal deposit = new BigDecimal(((Element) nodeList.item(i)).getAttribute("deposit"));
 
-            listOfTransactions.add(new Transaction(id, type, amount, deposit));
+            listOfTransactions.add(new Transaction(terminalID, terminalType, id, type, amount, deposit));
         }
     }
 
@@ -90,7 +91,7 @@ public class Client {
         Document dom = db.newDocument();
 
         Element root = dom.createElement("terminal");
-        root.setAttribute("id", terminalID);
+        root.setAttribute("id", String.valueOf(terminalID));
         root.setAttribute("type", terminalType);
 
         Element mainElement = dom.createElement("responses");
