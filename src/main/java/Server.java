@@ -23,30 +23,67 @@ public class Server extends Thread {
         try {
             String request = in.readUTF();
             JSONObject obj = new JSONObject(request);
-            String type = obj.getString("type");
-            Deposit dep = listOfDeposits.get(obj.getInt("deposit"));
-            synchronized (dep) {
+
+            boolean valid = false;
+
+            if (listOfDeposits.containsKey(obj.getInt("deposit"))) {
+                Deposit dep = listOfDeposits.get(obj.getInt("deposit"));
+                String type = obj.getString("type");
+                BigDecimal amount = new BigDecimal(obj.getInt("amount"));
+
                 if (type.equals("deposit")) {
-                    System.out.println(type);
-                    System.out.println(dep.getInitialBalane());
-                    dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
-                    System.out.println(dep.getInitialBalane());
+                    if (dep.getInitialBalane().add(amount).compareTo(dep.getUpperBound()) < 0) {
+                        valid = true;
+                    }
+                    else{
+                        out.writeUTF("exceeded");
+                    }
                 } else if (type.equals("withdraw")) {
-                    System.out.println(type);
-                    System.out.println(dep.getInitialBalane());
-                    listOfDeposits.get(obj.getInt("deposit")).setInitialBalane(listOfDeposits.get(obj.getInt("deposit")).getInitialBalane().subtract(new BigDecimal(obj.getInt("amount"))));
-                    System.out.println(dep.getInitialBalane());
+                    if (dep.getInitialBalane().compareTo(amount) > 0) {
+                        valid = true;
+                    }
+                    else{
+                        out.writeUTF("insufficient");
+                    }
+                }
+
+                System.out.println(valid);
+
+                if (valid) {
+                    synchronized (dep) {
+                        if (type.equals("deposit")) {
+                            dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
+                        } else if (type.equals("withdraw")) {
+                            listOfDeposits.get(obj.getInt("deposit")).setInitialBalane(listOfDeposits.get(obj.getInt("deposit")).getInitialBalane().subtract(new BigDecimal(obj.getString("amount"))));
+                        }
+                        out.writeUTF("done");
+                    }
+                    synchronized (logFile){
+                        logFile.writeBytes("The request for deposit number: " + obj.getInt("deposit") + " with transaction id: " + obj.getInt("id") + " has done successfully!\n");
+                    }
+                }
+                else{
+                    synchronized (logFile){
+                        logFile.writeBytes("The request for deposit number: " + obj.getInt("deposit") + " with transaction id: " + obj.getInt("id") + " was not valid!\n");
+                    }
+                }
+            }
+
+            else{
+                out.writeUTF("wrong");
+                synchronized (logFile){
+                    logFile.writeBytes("A deposit with specified number: " + obj.getInt("deposit") + " does not exist!\n");
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     static Map<Integer, Deposit> listOfDeposits;
     static int port;
     static String outLog;
+    static DataOutputStream logFile;
 
     public static void readFile(String fileName) {
         String jsonData = "";
@@ -78,6 +115,7 @@ public class Server extends Thread {
         listOfDeposits = new HashMap<Integer, Deposit>();
         readFile("core.json");
         ServerSocket listener = new ServerSocket(port);
+        logFile = new DataOutputStream(new FileOutputStream(outLog));
 
         try {
             while (true) {
