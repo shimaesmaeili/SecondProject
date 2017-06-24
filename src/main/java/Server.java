@@ -23,17 +23,21 @@ public class Server extends Thread {
         try {
             String request = in.readUTF();
             JSONObject obj = new JSONObject(request);
-            Deposit dep = listOfDeposits.get(obj.getInt("deposit"));
             String type = obj.getString("type");
-            if (type.equals("deposit")) {
-                System.out.println(type);
-                dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
-            } else if (type.equals("withdraw")) {
-                System.out.println(type);
-                dep.setInitialBalane(dep.getInitialBalane().subtract(new BigDecimal(obj.getInt("amount"))));
+            Deposit dep = listOfDeposits.get(obj.getInt("deposit"));
+            synchronized (dep) {
+                if (type.equals("deposit")) {
+                    System.out.println(type);
+                    System.out.println(dep.getInitialBalane());
+                    dep.setInitialBalane(dep.getInitialBalane().add(new BigDecimal(obj.getInt("amount"))));
+                    System.out.println(dep.getInitialBalane());
+                } else if (type.equals("withdraw")) {
+                    System.out.println(type);
+                    System.out.println(dep.getInitialBalane());
+                    listOfDeposits.get(obj.getInt("deposit")).setInitialBalane(listOfDeposits.get(obj.getInt("deposit")).getInitialBalane().subtract(new BigDecimal(obj.getInt("amount"))));
+                    System.out.println(dep.getInitialBalane());
+                }
             }
-            listOfDeposits.remove(obj.getInt("deposit"));
-            listOfDeposits.put(obj.getInt("deposit"), dep);
         } catch (IOException e) {
             e.printStackTrace();
         }
