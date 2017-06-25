@@ -38,15 +38,13 @@ public class Server extends Thread {
                 if (type.equals("deposit")) {
                     if (dep.getInitialBalane().add(amount).compareTo(dep.getUpperBound()) <= 0) {
                         valid = true;
-                    }
-                    else{
+                    } else {
                         out.writeUTF("exceeded");
                     }
                 } else if (type.equals("withdraw")) {
                     if (dep.getInitialBalane().compareTo(amount) >= 0) {
                         valid = true;
-                    }
-                    else{
+                    } else {
                         out.writeUTF("insufficient");
                     }
                 }
@@ -66,20 +64,17 @@ public class Server extends Thread {
                         }
                     }
                     out.writeUTF("done");
-                    synchronized (logFile){
+                    synchronized (logFile) {
                         logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was done successfully!\n");
                     }
-                }
-                else{
-                    synchronized (logFile){
+                } else {
+                    synchronized (logFile) {
                         logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was not valid!\n");
                     }
                 }
-            }
-
-            else{
+            } else {
                 out.writeUTF("wrong");
-                synchronized (logFile){
+                synchronized (logFile) {
                     logFile.writeBytes("A deposit with specified number: " + obj.getInt("deposit") + " does not exist!\n");
                 }
             }
