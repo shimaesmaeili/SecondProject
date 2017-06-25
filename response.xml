@@ -3,7 +3,6 @@
     <responses>
         <response id="1" status="done"/>
         <response id="2" status="insufficient"/>
-        <response id="3" status="done"/>
-        <response id="4" status="done"/>
+        <response id="3" status="exceeded"/>
     </responses>
 </terminal>

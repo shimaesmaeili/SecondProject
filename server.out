@@ -7,7 +7,4 @@ TerminalID=21374, TransactionID=2: validation checked.
 TerminalID=21374, TransactionID=2: The request for deposit number 35527439 was not valid!
 TerminalID=21374, TransactionID=3: A request is received!
 TerminalID=21374, TransactionID=3: validation checked.
-TerminalID=21374, TransactionID=3: The request for deposit number 35527439 was done successfully!
-TerminalID=21374, TransactionID=4: A request is received!
-TerminalID=21374, TransactionID=4: validation checked.
-TerminalID=21374, TransactionID=4: The request for deposit number 35527439 was done successfully!
+TerminalID=21374, TransactionID=3: The request for deposit number 35527439 was not valid!
