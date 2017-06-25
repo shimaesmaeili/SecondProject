@@ -34,6 +34,7 @@ public class Test extends Thread {
                 System.out.println(type);
                 System.out.println("initial: " + dep.getInitialBalane());
                 BigDecimal initial = dep.getInitialBalane();
+                System.out.println("amount: " + obj.getInt("amount"));
                 try {
                     join(100);
                 } catch (InterruptedException e) {

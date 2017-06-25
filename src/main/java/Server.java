@@ -88,19 +88,13 @@ public class Server extends Thread {
     static String outLog;
     static DataOutputStream logFile;
 
-    public static void readFile(String fileName) {
+    public static void readFile(String fileName) throws IOException {
         String jsonData = "";
         BufferedReader br = null;
-        try {
-            String line;
-            br = new BufferedReader(new FileReader("core.json"));
-            while ((line = br.readLine()) != null) {
-                jsonData += line + "\n";
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        String line;
+        br = new BufferedReader(new FileReader("core.json"));
+        while ((line = br.readLine()) != null) {
+            jsonData += line + "\n";
         }
 
         JSONObject obj = new JSONObject(jsonData);
@@ -127,6 +121,7 @@ public class Server extends Thread {
                 new Server(listener.accept()).start();
             }
         } catch (IOException e) {
+            logFile.writeBytes("Server can not get started!\n");
             e.printStackTrace();
         } finally {
             listener.close();
