@@ -24,9 +24,7 @@ public class Server extends Thread {
             String request = in.readUTF();
             JSONObject obj = new JSONObject(request);
 
-            synchronized (logFile) {
-                logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": A request is received!\n");
-            }
+            writeToFile("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": A request is received!\n");
 
             boolean valid = false;
 
@@ -48,11 +46,7 @@ public class Server extends Thread {
                         out.writeUTF("insufficient");
                     }
                 }
-
-                synchronized (logFile) {
-                    logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": validation checked.\n");
-                }
-
+                writeToFile("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": validation checked.\n");
                 System.out.println(valid);
 
                 if (valid) {
@@ -64,22 +58,22 @@ public class Server extends Thread {
                         }
                     }
                     out.writeUTF("done");
-                    synchronized (logFile) {
-                        logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was done successfully!\n");
-                    }
+                    writeToFile("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was done successfully!\n");
                 } else {
-                    synchronized (logFile) {
-                        logFile.writeBytes("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was not valid!\n");
-                    }
+                    writeToFile("TerminalID=" + obj.getInt("terminalID") + ", TransactionID=" + obj.getInt("id") + ": The request for deposit number " + obj.getInt("deposit") + " was not valid!\n");
                 }
             } else {
                 out.writeUTF("wrong");
-                synchronized (logFile) {
-                    logFile.writeBytes("A deposit with specified number: " + obj.getInt("deposit") + " does not exist!\n");
-                }
+                writeToFile("A deposit with specified number: " + obj.getInt("deposit") + " does not exist!\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void writeToFile(String message) throws IOException {
+        synchronized (logFile) {
+            logFile.writeBytes(message);
         }
     }
 

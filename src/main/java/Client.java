@@ -49,11 +49,15 @@ public class Client {
             } else if (respond.equals("wrong")) {
                 logMessage = "TransactionID=" + trans.getId() + ": encountered error!\n";
             }
-            synchronized (logFile) {
-                logFile.writeBytes(logMessage);
-            }
+            writeToFile(logMessage);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void writeToFile(String logMessage) throws IOException {
+        synchronized (logFile) {
+            logFile.writeBytes(logMessage);
         }
     }
 
