@@ -1,5 +1,9 @@
-/**
- * Created by $Hamid on 7/17/2017.
- */
+import java.util.ArrayList;
+
 public class Terminal {
+	public static ArrayList<Transaction> transactions;
+
+	public Terminal() {
+		transactions = new ArrayList<Transaction>();
+	}
 }
