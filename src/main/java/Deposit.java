@@ -6,6 +6,9 @@ public class Deposit {
     BigDecimal initialBalane;
     BigDecimal upperBound;
 
+    public Deposit() {
+    }
+
     Deposit(String customer, int id, BigDecimal initialBalane, BigDecimal upperBound){
         this.customer = customer;
         this.id = id;

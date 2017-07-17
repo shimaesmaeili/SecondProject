@@ -12,6 +12,11 @@ public class Server extends Thread {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    private static Map<Integer, Deposit> listOfDeposits;
+    private static int port;
+    private static String outLog;
+    private static DataOutputStream logFile;
+
 
     Server(Socket s) throws IOException {
         this.socket = s;
@@ -77,16 +82,10 @@ public class Server extends Thread {
         }
     }
 
-    static Map<Integer, Deposit> listOfDeposits;
-    static int port;
-    static String outLog;
-    static DataOutputStream logFile;
-
     public static void readFile(String fileName) throws IOException {
         String jsonData = "";
-        BufferedReader br = null;
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
         String line;
-        br = new BufferedReader(new FileReader("core.json"));
         while ((line = br.readLine()) != null) {
             jsonData += line + "\n";
         }
@@ -98,6 +97,7 @@ public class Server extends Thread {
         JSONArray arr = obj.getJSONArray("deposit");
         for (int i = 0; i < arr.length(); i++) {
             JSONObject depObj = arr.getJSONObject(i);
+            //todo use default constructors and setters
             listOfDeposits.put(depObj.getInt("id"), new Deposit(depObj.getString("customer"), depObj.getInt("id"), new BigDecimal(depObj.getString("initialBalance")), new BigDecimal(depObj.getString("upperBound"))));
         }
     }
