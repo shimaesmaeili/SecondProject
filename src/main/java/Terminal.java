@@ -1,6 +1,4 @@
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,11 +27,11 @@ public class Terminal extends Thread {
 	private String logFileName, ip, terminalType;
 	private BufferedWriter responseFile;
 
-	public Terminal() throws ParserConfigurationException, IOException, SAXException {
+	public Terminal(String fileName) throws ParserConfigurationException, IOException, SAXException {
 		transactions = new ArrayList<Transaction>();
 		responses = new HashMap<Integer, String>();
 
-		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse("terminal.xml");
+		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(fileName);
 		parseFile(document);
 		responseFile = new BufferedWriter(new FileWriter("response.xml"));
 	}
@@ -65,8 +63,6 @@ public class Terminal extends Thread {
 			transaction.setDeposit(deposit);
 			transactions.add(transaction);
 		}
-
-		System.out.println(transactions.size());
 	}
 
 	private void saveToXML() throws ParserConfigurationException, TransformerException {
