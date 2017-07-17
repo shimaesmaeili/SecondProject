@@ -1,6 +1,3 @@
 TransactionID=1: sent to server.
-TransactionID=1: done successfully!
 TransactionID=2: sent to server.
-TransactionID=2: can not be done due to lack of account balance!
 TransactionID=3: sent to server.
-TransactionID=3: can not be done due to exceeding the upper bound!

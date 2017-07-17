@@ -1,18 +1,20 @@
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public class Deposit {
     String customer;
     int id;
-    BigDecimal initialBalane;
-    BigDecimal upperBound;
+    BigInteger initialBalance;
+    BigInteger balance;
+    BigInteger upperBound;
 
     public Deposit() {
     }
 
-    Deposit(String customer, int id, BigDecimal initialBalane, BigDecimal upperBound){
+    Deposit(String customer, int id, BigInteger initialBalance, BigInteger upperBound){
         this.customer = customer;
         this.id = id;
-        this.initialBalane = initialBalane;
+        this.initialBalance = initialBalance;
+		this.balance = initialBalance;
         this.upperBound = upperBound;
     }
 
@@ -32,19 +34,27 @@ public class Deposit {
         this.id = id;
     }
 
-    public BigDecimal getInitialBalane() {
-        return initialBalane;
+    public BigInteger getInitialBalance() {
+        return initialBalance;
     }
 
-    public void setInitialBalane(BigDecimal initialBalane) {
-        this.initialBalane = initialBalane;
+    public void setInitialBalance(BigInteger initialBalance) {
+        this.initialBalance = initialBalance;
     }
 
-    public BigDecimal getUpperBound() {
+	public BigInteger getBalance() {
+		return balance;
+	}
+
+	public void setBalance(BigInteger balance) {
+		this.balance = balance;
+	}
+
+    public BigInteger getUpperBound() {
         return upperBound;
     }
 
-    public void setUpperBound(BigDecimal upperBound) {
+	public void setUpperBound(BigInteger upperBound) {
         this.upperBound = upperBound;
     }
 }
