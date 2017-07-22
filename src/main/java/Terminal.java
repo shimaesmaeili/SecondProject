@@ -26,14 +26,17 @@ public class Terminal extends Thread {
 	private int port, terminalID;
 	private String logFileName, ip, terminalType;
 	private BufferedWriter responseFile;
+	private String name;
 
-	public Terminal(String fileName) throws ParserConfigurationException, IOException, SAXException {
+	public Terminal(String name, String fileName) throws ParserConfigurationException, IOException, SAXException {
 		transactions = new ArrayList<Transaction>();
 		responses = new HashMap<Integer, String>();
 
 		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(fileName);
 		parseFile(document);
 		responseFile = new BufferedWriter(new FileWriter("response.xml"));
+
+		this.name = name;
 	}
 
 	private void parseFile(Document document) {
@@ -102,15 +105,17 @@ public class Terminal extends Thread {
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
-			for (Transaction transaction : transactions){
+			for (Transaction transaction : transactions) {
 				out.writeUTF(JSONObject.toJSONString(transaction.toMap()));
+				System.out.println(name + ": " + JSONObject.toJSONString(transaction.toMap()));
 				Logging.log(logFileName, "TransactionID=" + transaction.getId() + ": sent to server.\n");
 				String respond = in.readUTF();
-				System.out.println(respond);
+				System.out.println(name + ": " + respond);
 				responses.put(transaction.getId(), respond);
 			}
 
 			saveToXML();
+			socket.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();

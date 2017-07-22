@@ -1,21 +1,13 @@
 import java.math.BigInteger;
 
 public class Deposit {
-    String customer;
-    int id;
-    BigInteger initialBalance;
-    BigInteger balance;
-    BigInteger upperBound;
+    private String customer;
+    private int id;
+    private BigInteger initialBalance;
+    private BigInteger balance;
+    private BigInteger upperBound;
 
     public Deposit() {
-    }
-
-    Deposit(String customer, int id, BigInteger initialBalance, BigInteger upperBound){
-        this.customer = customer;
-        this.id = id;
-        this.initialBalance = initialBalance;
-		this.balance = initialBalance;
-        this.upperBound = upperBound;
     }
 
     public String getCustomer() {

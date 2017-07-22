@@ -3,6 +3,7 @@ import exception.notEnoughAmountException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -26,54 +27,66 @@ public class Server extends Thread {
 	}
 
 	public void run() {
-		for (int i = 0; i < 3; i++) {
-			try {
-				String request = in.readUTF();
+		try {
+			String request = "";
+			while ((request = in.readUTF()) != null) {
+				System.out.println(request);
 				JSONParser parser = new JSONParser();
 				JSONObject obj = (JSONObject) parser.parse(request);
 				Transaction transaction = new Transaction(obj);
-
 				Logging.log(logFileName, "TerminalID=" + transaction.getTerminalID() + ", TransactionID=" + transaction.getId() + ": A request is received!\n");
-
-				if (listOfDeposits.containsKey(transaction.getDeposit())) {
-					Deposit deposit = listOfDeposits.get(transaction.getDeposit());
-					String logMessage = "TerminalID=" + transaction.getTerminalID() + ", TransactionID=" + transaction.getId();
-					synchronized (deposit) {
-						if (transaction.getType().equals("deposit")) {
-							if (deposit.getBalance().add(transaction.getAmount()).compareTo(deposit.getUpperBound()) <= 0) {
-								deposit.setBalance(deposit.getBalance().add(transaction.getAmount()));
-								out.writeUTF("done");
-								Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was done successfully!\n");
-							} else {
-								out.writeUTF("exceeded");
-								Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was not valid!\n");
-								throw new exceedUpperBoundException();
-							}
-						} else if (transaction.getType().equals("withdraw")) {
-							if (deposit.getBalance().compareTo(transaction.getAmount()) >= 0) {
-								deposit.setBalance(deposit.getBalance().subtract(transaction.getAmount()));
-								out.writeUTF("done");
-								Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was done successfully!\n");
-							} else {
-								out.writeUTF("insufficient");
-								Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was not valid!\n");
-								throw new notEnoughAmountException();
-							}
-						}
-					}
-				} else {
-					out.writeUTF("wrong");
-					Logging.log(logFileName, "A deposit with specified number: " + transaction.getDeposit() + " does not exist!\n");
-				}
+				perform(transaction);
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
-			} catch (org.json.simple.parser.ParseException e) {
-				e.printStackTrace();
-			} catch (exceedUpperBoundException e) {
-				System.err.println("by this transaction you exceed the upper bound!");
-			} catch (notEnoughAmountException e) {
-				System.err.println("the amount is not sufficient!");
 			}
+		}
+	}
+
+
+	public void perform(Transaction transaction) throws IOException {
+		try {
+			if (listOfDeposits.containsKey(transaction.getDeposit())) {
+				Deposit deposit = listOfDeposits.get(transaction.getDeposit());
+				String logMessage = "TerminalID=" + transaction.getTerminalID() + ", TransactionID=" + transaction.getId();
+				synchronized (deposit) {
+					if (transaction.getType().equals("deposit")) {
+						if (deposit.getBalance().add(transaction.getAmount()).compareTo(deposit.getUpperBound()) <= 0) {
+							deposit.setBalance(deposit.getBalance().add(transaction.getAmount()));
+							out.writeUTF("done");
+							Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was done successfully!\n");
+						} else {
+							out.writeUTF("exceeded");
+							Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was not valid!\n");
+							throw new exceedUpperBoundException();
+						}
+					} else if (transaction.getType().equals("withdraw")) {
+						if (deposit.getBalance().compareTo(transaction.getAmount()) >= 0) {
+							deposit.setBalance(deposit.getBalance().subtract(transaction.getAmount()));
+							out.writeUTF("done");
+							Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was done successfully!\n");
+						} else {
+							out.writeUTF("insufficient");
+							Logging.log(logFileName, logMessage + ": The request for deposit number " + transaction.getDeposit() + " was not valid!\n");
+							throw new notEnoughAmountException();
+						}
+					}
+				}
+			} else {
+				out.writeUTF("wrong");
+				Logging.log(logFileName, "A deposit with specified number: " + transaction.getDeposit() + " does not exist!\n");
+			}
+		} catch (exceedUpperBoundException e) {
+			System.err.println("by this transaction you exceed the upper bound!");
+		} catch (notEnoughAmountException e) {
+			System.err.println("the amount is not sufficient!");
 		}
 	}
 
@@ -85,8 +98,8 @@ public class Server extends Thread {
 			logFileName = String.valueOf(obj.get("outLog"));
 
 			JSONArray array = (JSONArray) obj.get("deposit");
-			for (int i = 0; i < array.size(); i++) {
-				JSONObject depositJSONObj = (JSONObject) array.get(i);
+			for (Object JSONObj : array) {
+				JSONObject depositJSONObj = (JSONObject) JSONObj;
 				Deposit deposit = new Deposit();
 				deposit.setId(Integer.parseInt(String.valueOf(depositJSONObj.get("id"))));
 				deposit.setCustomer(String.valueOf(depositJSONObj.get("customer")));
